@@ -1,42 +1,54 @@
-# Marketing Harness
+# Marketing Harness — DAILY TAROT (sample brand)
 
-이 프로젝트는 Claude Code 기반 마케팅 컨텐츠 자동화 파이프라인이다.
-단일 토픽을 기획 → 초안 → 이미지 → 채널별 포맷 → 검수까지 자동화한다.
+이 프로젝트는 Claude Code 기반 운세 컨텐츠(타로/사주) 자동화 파이프라인이다.
+주제 선정 → 기획 → 카피 → 이미지 → 프레임 합성 → 비디오 렌더 → 검수까지 수행한다.
+샘플 브랜드는 가상의 **데일리타로 (DAILY TAROT)** 이며, 동일 구조로 다른 운세 브랜드에도 이식 가능하다.
 
 ## 산출물 경로
 
 모든 산출물은 `.content-artifacts/{topic-slug}/` 하위에 저장한다.
-`{topic-slug}`은 사용자가 brief 단계에서 확정한 슬러그(예: `harness-onboarding`, `2026-04-launch`)이다.
+`{topic-slug}`은 pick-topic 단계에서 결정된다 (예: `2026-05-08-secret-admirer`).
 
 산출물 목록:
-- `brief.md` — 작업 명세서 (주제·타겟·핵심 메시지·CTA·발행 채널 목록)
-- `draft.md` — 본문 초안
-- `images/` — 생성된 이미지 파일 + `image-prompts.md`
-- `formatted/{channel}.md` — 채널별 발행본
+- `topic.md` — 선정된 주제 + 후보군 + 선정 사유
+- `brief.md` — 작업 명세서 (프레임 템플릿·질문·카드 컨셉·CTA)
+- `draft.md` — 프레임별 카피 통합본
+- `images/raw/` — 나노바나나 원본 이미지
+- `images/composed/frame-{1..4}.png` — 로고·텍스트 합성 완료된 9:16 프레임
+- `images/image-prompts.md` — 사용된 프롬프트 기록
+- `formatted/reels.md` — reels 시퀀스 메타 (프레임별 노출 시간 등)
+- `output.mp4` — 최종 렌더링된 릴스 비디오
 - `review.md` — 규칙 기반 검수 결과
 
 ## 참조 문서
 
-- `docs/brand-voice.yaml` — 브랜드 톤·페르소나·금지어·시그니처 표현
-- `docs/channel-formats.yaml` — 채널별(Threads/X/LinkedIn/IG) 길이·해시태그·이미지 비율 규칙
-- `docs/content-adr.yaml` — 컨텐츠 의사결정 (예: "이모지 미사용", "후크 우선" 등)
+- `docs/brand-voice.yaml` — 브랜드 톤 (감성·신비형, 단정·도발형 아님)
+- `docs/channel-formats.yaml` — instagram(카드뉴스) + reels(9:16 4프레임)
+- `docs/content-adr.yaml` — 컨텐츠 의사결정
+- `docs/reels-templates.yaml` — 릴스 프레임 시퀀스 템플릿 (예: pick-a-card)
+- `docs/topic-history.yaml` — 발행 이력. pick-topic이 중복 회피에 사용
+- `docs/domain-knowledge/topic-pool.yaml` — 주제 풀 + 바이럴 시그널
+- `docs/domain-knowledge/tarot-cards.md` — 카드 의미 사전
+- `docs/domain-knowledge/reading-style.md` — 해석 톤·구조 가이드
+- `docs/domain-knowledge/visual-style.md` — 이미지 스타일·브랜드 비주얼 규칙
 
 ## 브랜드 톤 (always-apply)
 
 이 톤은 모든 단계, 모든 sub-agent의 기본 시스템 프롬프트로 작용한다.
-상세 항목·예시는 `docs/brand-voice.yaml`을 참조하되, 아래 핵심 규칙은 어떤 단계에서도 위반하지 않는다.
+상세 항목·예시는 `docs/brand-voice.yaml`을 참조한다.
 
-1. **단정형으로 쓴다.** "~할 수 있을지도 몰라요" 같은 회피 표현 금지. "~한다", "~다."
-2. **도발형 후크를 첫 줄에 둔다.** 평이한 인사말로 시작하지 않는다.
-3. **이모지를 사용하지 않는다.** (브랜드 결정. content-adr 참조)
-4. **약속이 아니라 도발.** "~를 도와드립니다"가 아니라 "~에 멈춰 있다면, 그건 당신의 한계가 아니라 도구의 한계다."
-5. **고유 명사 표기**: '바이브마피아클럽', 'VIBE MAFIA CLUB', 'VMC' 중 하나만 사용. 줄임말·변형 금지.
-6. **금지어**는 brand-voice.yaml의 `forbidden` 항목을 항상 검사한다. 검수 단계에서 위반 시 자동 FAIL.
+1. **감성 서사형으로 쓴다.** "~네요", "~ 같아요", "~인 것 같습니다" 등 부드러운 어미를 활용한다. 단정·도발형 어미를 강하게 쓰지 않는다.
+2. **2인칭으로 독자를 호명한다.** "당신의 마음에는…", "지금 당신을 둘러싼…" 같이 청자에게 직접 말한다.
+3. **카드/별자리/사주 용어를 본문에 자연스럽게 녹인다.** 해석체이지 점쟁이 클리셰는 자제한다 ("운명입니다!" 같은 강조 표현 회피).
+4. **광고 직설 금지.** "지금 가입하세요" 같은 표현 대신, 댓글·DM 트리거 형태로 자연스럽게 다음 행동을 유도한다.
+5. **브랜드 표기**: '데일리타로', 'DAILY TAROT' 두 가지만 사용한다. 변형·줄임말·이모지 미사용은 content-adr 참조.
+6. **금지어**는 brand-voice.yaml의 `forbidden` 항목을 항상 검사한다.
 
 ## 파이프라인 규칙
 
-1. Sub-agent로 실행하는 단계(draft, image, format, review)는 산출물 디렉토리(`.content-artifacts/{topic-slug}/`)에만 쓰기를 수행한다. 본 프로젝트의 다른 파일을 수정하지 않는다.
-2. 이미지 생성은 `nanobanana` MCP를 사용한다. MCP가 사용 불가능하면 image 단계를 중단하고 사용자에게 보고한다.
-3. review는 규칙 기반 단순 비교만 수행한다 (길이·해시태그 수·금지어·이미지 비율 등). 톤·창의성에 대한 평가는 하지 않는다.
-4. 최종 발행 승인은 반드시 사람이 한다. review가 PASS여도 자동 발행하지 않는다.
-5. 사용자에게 확인을 요청할 때, 모호하여 구체화가 필요한 논의점을 반드시 함께 정리하여 전달한다.
+1. 모든 sub-agent는 산출물 디렉토리(`.content-artifacts/{topic-slug}/`)에만 쓰기 권한을 가진다. 본 프로젝트의 다른 파일을 수정하지 않는다. 단 `docs/topic-history.yaml`은 pick-topic 종료 시 추가만 가능하다.
+2. 이미지 생성은 `nanobanana` MCP를 사용한다. MCP가 사용 불가하면 image 단계를 중단하고 사용자에게 보고한다.
+3. 비디오 렌더는 로컬 `ffmpeg` 바이너리에 의존한다. 미설치 시 render 단계를 중단하고 보고한다.
+4. review는 규칙 기반 단순 비교만 수행한다. 톤·창의성 평가는 사람에게 위임한다.
+5. 최종 발행은 사람이 한다. review가 PASS여도 자동 발행하지 않는다.
+6. pick-topic은 `topic-history.yaml`의 직전 N일 내 발행 주제를 자동 제외하여 중복 발행을 방지한다.

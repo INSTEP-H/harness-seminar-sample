@@ -1,6 +1,6 @@
 ---
 name: migration-specifier
-description: 레거시 코드를 read-only로 분석하여 기능 명세(작업 명세서)를 마크다운으로 작성한다. /mafia-migration:specify 단계에서 호출된다.
+description: 레거시 코드를 read-only로 분석하여 기능 명세(작업 명세서)를 마크다운으로 작성한다. specify skill 단계에서 호출된다.
 model: sonnet
 tools: Read, Glob, Grep, Bash, Write
 ---

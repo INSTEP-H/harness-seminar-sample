@@ -1,6 +1,6 @@
 ---
 name: migration-explorer
-description: 타겟 코드베이스의 컨벤션·관련 ADR·재사용 가능한 모듈을 수집하여 참고 자료집을 작성한다. /mafia-migration:explore 단계에서 호출된다.
+description: 타겟 코드베이스의 컨벤션·관련 ADR·재사용 가능한 모듈을 수집하여 참고 자료집을 작성한다. explore skill 단계에서 호출된다.
 model: sonnet
 tools: Read, Glob, Grep, Write
 ---

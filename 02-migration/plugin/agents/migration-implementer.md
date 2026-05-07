@@ -1,6 +1,6 @@
 ---
 name: migration-implementer
-description: 확정된 migration-plan을 그대로 구현한다. /mafia-migration:implement 단계에서 호출된다. 분량이 클 때 파일/도메인 단위로 sub-agent를 추가 분할할 수 있다.
+description: 확정된 migration-plan을 그대로 구현한다. implement skill 단계에서 호출된다. 분량이 클 때 파일/도메인 단위로 sub-agent를 추가 분할할 수 있다.
 model: sonnet
 tools: Read, Glob, Grep, Edit, Write, Bash
 ---

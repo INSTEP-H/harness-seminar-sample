@@ -1,0 +1,15 @@
+# 발행 이력. pick-topic이 중복 회피용으로 자동 참조한다.
+# 새 주제 발행 후 pick-topic이 자동으로 항목을 추가한다 (append-only).
+# 사용자가 수동으로도 추가/수정할 수 있다.
+#
+# 스키마:
+#   - topic_id:    domain-knowledge/topic-pool.yaml의 id
+#     used_at:     YYYY-MM-DD
+#     slug:        해당 발행의 topic-slug
+#     channel:     [reels, instagram, ...]
+#     performance: (optional)
+#       reach:    숫자
+#       comments: 숫자
+#       dm_leads: 숫자
+
+history: []

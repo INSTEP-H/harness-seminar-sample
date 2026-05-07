@@ -1,6 +1,6 @@
 ---
 name: migration-planner
-description: 레거시 명세와 타겟 컨텍스트를 입력받아 마이그레이션 구현 계획서를 작성한다. /mafia-migration:plan 단계에서 호출된다. 설계 품질을 확보하기 위해 Opus 모델을 사용한다.
+description: 레거시 명세와 타겟 컨텍스트를 입력받아 마이그레이션 구현 계획서를 작성한다. plan skill 단계에서 호출된다. 설계 품질을 확보하기 위해 Opus 모델을 사용한다.
 model: opus
 tools: Read, Glob, Grep, Write
 ---

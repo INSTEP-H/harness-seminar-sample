@@ -1,6 +1,6 @@
 ---
 name: migration-verifier
-description: 구현 결과를 (a) 명세 체크리스트와 (c) 시각 회귀로 검증하고 보고서를 작성한다. /mafia-migration:verify 단계에서 호출된다.
+description: 구현 결과를 (a) 명세 체크리스트와 (c) 시각 회귀로 검증하고 보고서를 작성한다. verify skill 단계에서 호출된다.
 model: sonnet
 tools: Read, Glob, Grep, Bash, Write
 ---

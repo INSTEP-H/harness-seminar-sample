@@ -1,0 +1,99 @@
+# 주제 풀
+# pick-topic 단계에서 후보를 뽑는 원천. 동일 도메인의 다른 브랜드도 그대로 활용 가능하도록 일반화되어 있다.
+#
+# 스키마:
+#   - id:              내부 식별자 (kebab-case)
+#     question:        프레임 1에 들어갈 한 줄 질문
+#     question_full:   프레임 2에 들어갈 풀어 쓴 버전
+#     category:        주제 분류 (연애·관계 / 커리어·일 / 인간관계 / 자기이해 / 재물·운세 등)
+#     audience:        주 타겟층
+#     viral_signals:   바이럴 가능성 시그널 태그
+#     reels_template:  사용할 reels-templates.yaml id
+#
+# viral_signals 카테고리 (스코어링 가중치):
+#   - personal_curiosity_high      : 시청자가 자기 자신을 대입하기 쉬움
+#   - low_threshold_for_engagement : 댓글 한 줄로 참여 가능
+#   - near_term_anxiety            : "곧 일어날 일"에 대한 즉시성
+#   - hope_seeking                 : 긍정적 기대 자극
+#   - identity_curiosity           : "내가 어떤 사람인가" 류
+
+topics:
+  - id: love-secret-admirer
+    question: 요즘 티 안내고 나를 좋아하는 사람
+    question_full: 몰래 날 좋아하는 사람, 직관적으로 끌리는 카드를 선택하세요
+    category: 연애/관계
+    audience: 20-30대 여성
+    viral_signals: [personal_curiosity_high, low_threshold_for_engagement]
+    reels_template: pick-a-card
+
+  - id: love-next-meeting
+    question: 다음에 만나게 될 인연
+    question_full: 가까운 미래에 내 곁에 다가올 사람, 직관적으로 끌리는 카드를 선택하세요
+    category: 연애/관계
+    audience: 20-30대
+    viral_signals: [hope_seeking, personal_curiosity_high]
+    reels_template: pick-a-card
+
+  - id: career-next-month
+    question: 다음 달 내 일에 찾아올 변화
+    question_full: 한 달 안에 내 커리어에 일어날 일, 한 장을 골라보세요
+    category: 커리어/일
+    audience: 직장인
+    viral_signals: [near_term_anxiety, hope_seeking]
+    reels_template: pick-a-card
+
+  - id: career-shift-or-stay
+    question: 지금 직장을 옮겨도 될까
+    question_full: 이직과 잔류, 어느 쪽이 나에게 더 맞는지, 끌리는 카드를 골라보세요
+    category: 커리어/일
+    audience: 3-7년차 직장인
+    viral_signals: [near_term_anxiety, identity_curiosity]
+    reels_template: pick-a-card
+
+  - id: relation-friend-distance
+    question: 요즘 멀어진 그 친구의 마음
+    question_full: 한동안 어색해진 관계 속, 그 사람이 진짜 나를 어떻게 생각하는지
+    category: 인간관계
+    audience: 20-40대
+    viral_signals: [personal_curiosity_high]
+    reels_template: pick-a-card
+
+  - id: self-strength-now
+    question: 지금 나에게 가장 큰 무기
+    question_full: 요즘 나를 지탱하고 있는 진짜 강점, 한 장을 골라보세요
+    category: 자기이해
+    audience: 전 연령
+    viral_signals: [identity_curiosity, hope_seeking]
+    reels_template: pick-a-card
+
+  - id: money-this-quarter
+    question: 이번 분기 내 돈의 흐름
+    question_full: 다가오는 3개월간의 재물운, 직관적으로 끌리는 카드를 골라보세요
+    category: 재물/운세
+    audience: 30-40대
+    viral_signals: [near_term_anxiety, hope_seeking]
+    reels_template: pick-a-card
+
+  - id: weekend-message
+    question: 이번 주말 우주가 보내는 메시지
+    question_full: 이번 주말, 당신을 위해 준비된 한 줄
+    category: 자기이해
+    audience: 전 연령
+    viral_signals: [low_threshold_for_engagement, hope_seeking]
+    reels_template: pick-a-card
+
+  - id: family-undertone
+    question: 부모님이 말 못 한 그 마음
+    question_full: 가족 사이에서 들리지 않는 진심, 한 장을 골라보세요
+    category: 인간관계
+    audience: 30-50대
+    viral_signals: [personal_curiosity_high]
+    reels_template: pick-a-card
+
+  - id: dream-recurring
+    question: 자꾸 꾸는 그 꿈이 말하는 것
+    question_full: 반복되는 꿈 속에 숨은 메시지, 한 장을 골라보세요
+    category: 자기이해
+    audience: 전 연령
+    viral_signals: [identity_curiosity, personal_curiosity_high]
+    reels_template: pick-a-card

@@ -2,60 +2,8 @@
 # format / review 단계에서 자동 검증된다.
 
 channels:
-  - id: threads
-    display_name: Threads
-    body:
-      max_chars: 500             # threads 본문 최대 길이
-      hook_first_line: true      # 첫 줄에 후크 필수
-      paragraphs_max: 6
-    hashtags:
-      max_count: 5
-      placement: end_of_post     # end_of_post | inline | none
-    image:
-      required: true
-      ratio: ["4:5", "1:1"]      # 허용 비율
-      max_count: 4
-    notes:
-      - 첫 줄이 100자를 초과하면 본문이 잘려보일 수 있어 권장하지 않는다.
-      - 댓글 잠금 정책은 게시 후 수동 설정. 본 파이프라인에서 다루지 않음.
-
-  - id: x
-    display_name: X (Twitter)
-    body:
-      max_chars: 280
-      hook_first_line: true
-      paragraphs_max: 1
-    hashtags:
-      max_count: 2
-      placement: inline
-    image:
-      required: false
-      ratio: ["16:9", "1:1"]
-      max_count: 4
-    notes:
-      - 280자를 초과하는 본문은 자동으로 thread화 후보로 표시한다.
-      - thread 작성 시 첫 트윗에만 후크, 이후 트윗에 후크 반복 금지.
-
-  - id: linkedin
-    display_name: LinkedIn
-    body:
-      max_chars: 3000
-      hook_first_line: true
-      paragraphs_max: 12
-      headings_allowed: true     # LinkedIn은 헤딩 허용
-    hashtags:
-      max_count: 5
-      placement: end_of_post
-    image:
-      required: false
-      ratio: ["1.91:1", "1:1"]
-      max_count: 1
-    notes:
-      - 3줄까지만 노출되고 "더 보기"로 접히므로, 첫 3줄 안에 핵심 가치 제안이 들어가야 한다.
-      - 영어/한국어 혼용 시 한국어 본문 + 영어 요약 댓글 패턴 권장.
-
   - id: instagram
-    display_name: Instagram
+    display_name: Instagram (피드 캡션)
     body:
       max_chars: 2200
       hook_first_line: true
@@ -68,4 +16,47 @@ channels:
       ratio: ["4:5", "1:1"]
       max_count: 10
     notes:
-      - 캡션 첫 125자만 피드에 노출되므로, 그 안에 후크 + CTA 위치를 잡는다.
+      - 캡션은 첫 125자만 피드에 노출되므로, 그 안에 후크와 다음 행동을 암시한다.
+      - 이 채널은 텍스트 캡션이며, 비주얼은 reels(또는 카드뉴스)에서 별도로 산출된다.
+
+  - id: reels
+    display_name: Instagram Reels
+    type: video
+    aspect_ratio: "9:16"
+    canvas: { width: 1080, height: 1920 }
+    safe_zones:
+      # UI 가림 방지용 안전 여백 (퍼센트 기준, 캔버스 비율로 계산)
+      top_pct: 8                          # 상단 핸들 영역
+      bottom_pct: 22                      # 하단 캡션·UI 가림
+      side_pct: 6
+    branding:
+      logo:
+        path: assets/brand-logo.svg       # 사용자가 본인 로고로 교체
+        position: top-center
+        size_pct: 14                      # 캔버스 너비 기준 비율
+        margin_top_pct: 4
+      background_color: "#3B1B1B"         # 다크 버건디
+      text_color: "#F4E9D8"               # 크림
+      accent_color: "#D4A24C"             # 골드
+      title_font: serif                   # 시리즈 타이틀 폰트 카테고리
+      body_font: sans-serif
+    frames:
+      # 기본 프레임 수. 실제 프레임 구성·내용은 reels-templates.yaml 참조.
+      count: 4
+      duration_sec_total_max: 18          # 릴스 권장 14~18초
+    audio:
+      bgm:
+        required: false
+        path_field: brief.bgm_path        # brief에서 사용자 지정 가능
+        volume_db: -18
+      tts:
+        required: false                   # default off
+    body:
+      # reels는 비디오 단위로 평가되지만, 캡션(인스타 본문) 규칙은 instagram 채널을 그대로 따른다.
+      caption_inherits_from: instagram
+    review_rules:
+      enforce_aspect_ratio: true
+      enforce_logo_presence: true
+      enforce_frame_count: true
+      enforce_safe_zone: true
+      cta_in_last_frame_only: true

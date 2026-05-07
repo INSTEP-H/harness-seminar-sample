@@ -7,8 +7,8 @@
     {
       "name": "mafia-marketing",
       "source": "./plugin",
-      "description": "Claude Code 기반 마케팅 컨텐츠 자동화 파이프라인. 기획 → 초안 → 이미지 → 채널별 포맷 → 규칙 기반 검수까지 자동화합니다.",
-      "version": "0.1.0"
+      "description": "Claude Code 기반 운세(타로/사주) 컨텐츠 자동화 파이프라인. 주제 자동 선정 → 프레임별 카피 → 나노바나나 이미지 → 9:16 합성 → ffmpeg 릴스 렌더 → 규칙 검수까지 자동화합니다.",
+      "version": "0.2.0"
     }
   ]
 }
