@@ -1,0 +1,71 @@
+# 채널별 발행 포맷 규칙
+# format / review 단계에서 자동 검증된다.
+
+channels:
+  - id: threads
+    display_name: Threads
+    body:
+      max_chars: 500             # threads 본문 최대 길이
+      hook_first_line: true      # 첫 줄에 후크 필수
+      paragraphs_max: 6
+    hashtags:
+      max_count: 5
+      placement: end_of_post     # end_of_post | inline | none
+    image:
+      required: true
+      ratio: ["4:5", "1:1"]      # 허용 비율
+      max_count: 4
+    notes:
+      - 첫 줄이 100자를 초과하면 본문이 잘려보일 수 있어 권장하지 않는다.
+      - 댓글 잠금 정책은 게시 후 수동 설정. 본 파이프라인에서 다루지 않음.
+
+  - id: x
+    display_name: X (Twitter)
+    body:
+      max_chars: 280
+      hook_first_line: true
+      paragraphs_max: 1
+    hashtags:
+      max_count: 2
+      placement: inline
+    image:
+      required: false
+      ratio: ["16:9", "1:1"]
+      max_count: 4
+    notes:
+      - 280자를 초과하는 본문은 자동으로 thread화 후보로 표시한다.
+      - thread 작성 시 첫 트윗에만 후크, 이후 트윗에 후크 반복 금지.
+
+  - id: linkedin
+    display_name: LinkedIn
+    body:
+      max_chars: 3000
+      hook_first_line: true
+      paragraphs_max: 12
+      headings_allowed: true     # LinkedIn은 헤딩 허용
+    hashtags:
+      max_count: 5
+      placement: end_of_post
+    image:
+      required: false
+      ratio: ["1.91:1", "1:1"]
+      max_count: 1
+    notes:
+      - 3줄까지만 노출되고 "더 보기"로 접히므로, 첫 3줄 안에 핵심 가치 제안이 들어가야 한다.
+      - 영어/한국어 혼용 시 한국어 본문 + 영어 요약 댓글 패턴 권장.
+
+  - id: instagram
+    display_name: Instagram
+    body:
+      max_chars: 2200
+      hook_first_line: true
+      paragraphs_max: 8
+    hashtags:
+      max_count: 30
+      placement: end_of_post
+    image:
+      required: true
+      ratio: ["4:5", "1:1"]
+      max_count: 10
+    notes:
+      - 캡션 첫 125자만 피드에 노출되므로, 그 안에 후크 + CTA 위치를 잡는다.

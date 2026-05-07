@@ -1,0 +1,40 @@
+# 마이그레이션 방침
+# 어떤 식으로 옮길 것인가에 대한 의사결정. plan 단계에서 핵심 입력으로 사용된다.
+
+approach: redesign
+# one of:
+#   1to1     — 레거시 구조를 가능한 한 그대로 유지 (네이밍·계층·흐름 보존)
+#   redesign — 타겟 컨벤션·ADR에 맞춰 재설계 (외부 계약만 보장)
+
+dead_code:
+  policy: drop
+  # one of:
+  #   drop     — 사용처 없는 코드는 마이그레이션에서 제외
+  #   preserve — 그대로 옮긴다
+  #   flag     — 옮기되 별도 보고서에 표기
+
+api_compatibility:
+  preserve_external_contract: true
+  # true이면 외부에 노출된 API의 응답 키·구조를 그대로 유지한다.
+  # 클라이언트 동시 수정이 가능하면 false로 두고 ADR에 맞춰 재설계 가능.
+
+data:
+  schema_migration: separate
+  # one of:
+  #   separate — 데이터 마이그레이션은 본 파이프라인 범위 외 (DBA 별도 진행)
+  #   inline   — 마이그레이션 SQL/스크립트도 함께 생성
+  preserve_column_names: true
+  # true이면 신규 ORM 모델의 필드명도 레거시 컬럼명을 보존한다 (외부 보고서·BI 호환).
+
+testing:
+  reference_dataset_required: true
+  # 명세 검증용 input/output 데이터셋을 sub-agent가 생성·요구한다.
+  visual_regression: required_for_ui
+  # required_for_ui — UI 모듈(`legacy-project.yaml`의 modules[].ui가 정의된 경우)에 대해 필수
+  # off            — 시각 회귀 비활성
+  visual_diff_threshold_pct: 2
+  # 스크린샷 diff 허용치(%). 초과 시 verify 실패로 처리.
+
+review:
+  human_signoff_required: true
+  # plan 단계 산출물은 사용자 승인 후에만 implement 단계로 진행한다.

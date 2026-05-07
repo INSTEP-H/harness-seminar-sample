@@ -1,0 +1,14 @@
+{
+  "name": "mafia-migration-harness",
+  "owner": {
+    "name": "vibemafiaclub"
+  },
+  "plugins": [
+    {
+      "name": "mafia-migration",
+      "source": "./plugin",
+      "description": "Claude Code 기반 레거시 마이그레이션 자동화 파이프라인. 명세 추출, 컨텍스트 수집, 모델 분리(Opus/Sonnet) 구현, 명세·시각 회귀 검증을 자동화합니다.",
+      "version": "0.1.0"
+    }
+  ]
+}

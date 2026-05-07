@@ -1,0 +1,60 @@
+# 레거시 프로젝트 메타정보
+# 마이그레이션 대상 시스템에 대한 정보. specify / verify 단계에서 sub-agent에게 노출된다.
+
+name: ERP-LEGACY
+description: 사내 ERP 시스템. Java/Spring 기반, JSP 화면.
+
+# 레거시 프로젝트 경로 (별도 repo, read-only로만 다룬다)
+path: ../legacy-erp
+
+tech_stack:
+  language: Java 8
+  framework: Spring Framework 4.x
+  build: Maven
+  database: Oracle 11g
+  view: JSP + jQuery 1.x
+
+# specify / verify 단계에서 sub-agent가 직접 실행할 수 있는 명령
+commands:
+  build: cd ../legacy-erp && mvn -q package
+  run: cd ../legacy-erp && mvn -q spring-boot:run
+  test: cd ../legacy-erp && mvn -q test
+  # verify 단계의 시각 회귀에서 사용할 레거시 화면 URL 진입점
+  preview: http://localhost:8080
+
+# 레거시 코드 중 sub-agent가 읽을 수 있는 영역
+readable_paths:
+  - src/main/java
+  - src/main/resources
+  - src/main/webapp/WEB-INF/views
+
+# 마이그레이션에서 제외할 영역 (deprecated 코드, 빌드 산출물 등)
+excluded_paths:
+  - src/main/java/com/legacy/internal/dump
+  - target
+
+# 마이그레이션 단위. {module-id}로 사용된다.
+modules:
+  - id: order
+    description: 주문 관리 도메인 (생성/취소/환불)
+    legacy_paths:
+      - src/main/java/com/legacy/order
+      - src/main/webapp/WEB-INF/views/order
+    ui:
+      screens:
+        - name: order-list
+          path: /order/list
+        - name: order-detail
+          path: /order/{id}
+        - name: order-cancel
+          path: /order/{id}/cancel
+
+  - id: auth
+    description: 인증·인가 (로그인, 권한 체크)
+    legacy_paths:
+      - src/main/java/com/legacy/auth
+      - src/main/java/com/legacy/security
+    ui:
+      screens:
+        - name: login
+          path: /login

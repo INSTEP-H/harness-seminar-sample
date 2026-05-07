@@ -1,0 +1,47 @@
+- id: ADR-001
+  title: 데이터 액세스 레이어 채택
+  status: adopted
+  date: 2026-04-01
+  stacks: [next, typescript]
+  context: |
+    레거시 시스템은 JSP에서 직접 SQL을 호출하거나 MyBatis Mapper를 사용해 비즈니스 로직과 쿼리가 혼재되어 있었다.
+    동일한 쿼리가 여러 화면에 중복 정의되어 인덱스 추가/컬럼 변경이 발생할 때 수십 곳을 동시에 수정해야 했고,
+    누락이 잦아 운영 장애로 이어진 사례가 분기마다 반복됐다.
+    또한 비즈니스 로직 단위 테스트 작성이 거의 불가능해 회귀 검증을 사람 손에 의존해왔다.
+  decision: Drizzle ORM + Repository 패턴을 사용한다. SQL은 repository 내부에 캡슐화하고, 비즈니스 로직은 repository 인터페이스만 의존한다.
+  consequence: 마이그레이션 시 JSP/Mapper의 쿼리는 모두 repository로 이전. 비즈니스 테스트는 repository를 mock하여 작성.
+
+- id: ADR-002
+  title: 인증 토큰 표준
+  status: adopted
+  date: 2026-04-08
+  stacks: [next]
+  context: |
+    레거시는 서버 세션(JSESSIONID + sticky session) 기반이었다.
+    신규 인프라는 ALB 라운드로빈을 쓰게 되어 sticky session 보장이 어렵고,
+    모바일 앱과의 단일 인증 통합 요구가 추가되면서 세션 기반은 유지가 불가능해졌다.
+  decision: HttpOnly·SameSite=Lax 쿠키에 담긴 Stateless JWT를 사용한다. Refresh Token은 별도 endpoint(/auth/refresh)에서만 갱신한다.
+  consequence: 마이그레이션 시 세션 기반 인증 코드는 모두 JWT 기반으로 재작성. 인증 모듈이 가장 먼저 마이그레이션되어야 다른 모듈이 의존할 수 있음.
+
+- id: ADR-003
+  title: UI 컴포넌트 라이브러리
+  status: adopted
+  date: 2026-04-15
+  stacks: [next]
+  context: |
+    레거시 JSP 화면은 jQuery + 자체 CSS로 구성돼 있었고, 같은 버튼/모달이 페이지마다 미묘하게 다르게 구현되어
+    디자인 일관성이 떨어졌다. 디자인 QA에서 수동 픽셀 비교에 시간이 과도하게 소비됐다.
+  decision: shadcn/ui + Tailwind를 표준으로 사용한다. 자체 CSS 작성은 디자인 토큰 정의 파일에 한정한다.
+  consequence: 마이그레이션된 화면은 shadcn/ui 컴포넌트로 통일. 시각 회귀는 shadcn 기준 픽셀 허용치를 적용.
+
+- id: ADR-004
+  title: API 응답 형식 통일
+  status: adopted
+  date: 2026-04-22
+  stacks: [next]
+  context: |
+    레거시 ERP는 엔드포인트마다 응답 구조가 달랐다.
+    어떤 곳은 { result: ..., message: ... }, 어떤 곳은 { data: ..., status: ... }, 또 다른 곳은 페이지네이션 메타가 root에 평면적으로 흩어져 있었다.
+    프론트엔드에서는 엔드포인트별 파싱 어댑터를 따로 두고 있었고, 신규 화면 추가 시마다 형식 협의에 시간이 소비됐다.
+  decision: 모든 API 응답은 { data, error, meta } 구조를 따른다. error는 { code, message } 구조의 도메인 에러로 정규화한다.
+  consequence: 마이그레이션 시 외부 계약 보존이 필요한 응답은 어댑터 레이어를 두어 신규 형식으로 변환 후 다시 레거시 형식으로 직렬화한다 (preserve_external_contract=true 정책 시).
