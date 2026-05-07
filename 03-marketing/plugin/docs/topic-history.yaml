@@ -12,4 +12,8 @@
 #       comments: 숫자
 #       dm_leads: 숫자
 
-history: []
+history:
+  - topic_id: love-secret-admirer
+    used_at: 2026-05-08
+    slug: 2026-05-08-love-secret-admirer
+    channel: [reels, instagram]
