@@ -5,7 +5,7 @@
 - **topic_slug**: 2026-05-08-love-secret-admirer
 - **frame_template**: pick-a-card
 - **publish_channels**: [reels, instagram]
-- **bgm**: 미사용 (default off)
+- **bgm**: Santo & Johnny — “And I Love Her” (instrumental, 1964). t=60s부터 14s, fade in 0.8s / fade out 1.5s, mix -18dB (channel-formats.audio.bgm.volume_db). source: https://www.youtube.com/watch?v=EHQYAylvqIo. 인스트루멘털 트렌딩 풀(`docs/bgm-pool.yaml`)에서 선택
 
 ## 후크
 

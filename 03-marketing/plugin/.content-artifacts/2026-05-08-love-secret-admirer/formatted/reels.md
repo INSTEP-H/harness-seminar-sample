@@ -20,7 +20,8 @@
 
 ## 오디오
 
-- bgm: **미사용** (brief 단계에서 off로 결정)
+- bgm: **Santo & Johnny — “And I Love Her”** (instrumental, 1964). t=60s부터 14s 후크, fade in 0.8s / fade out 1.5s, -18dB
+- bgm 선정: `docs/bgm-pool.yaml`의 인스트루멘털 트렌딩 풀에서 선택
 - tts: 미사용
 
 ## 렌더 옵션 (ffmpeg)

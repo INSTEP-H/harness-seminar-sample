@@ -35,13 +35,14 @@
 | 13 | 총 길이 | PASS | 14.00s ≤ 18s (channel-formats.reels.frames.duration_sec_total_max) |
 | 14 | 비율 | PASS | 1080×1920 (9:16) |
 | 15 | 코덱 (video) | PASS | H.264 + yuv420p |
-| 15-a | 코덱 (audio) | PASS | brief에서 BGM=false, audio stream 부재. 규칙상 BGM 미사용 시 AAC 트랙 불요 |
+| 15-a | 코덱 (audio) | PASS | AAC 192kbps · 48kHz · stereo. BGM = Santo & Johnny “And I Love Her” (instrumental), -18dB |
 
 ## 사람 최종 검수 요청 항목
 
 - 톤이 의도된 감성 강도인지 (자동 판정 불가)
 - 카드 비주얼이 주제·해석과 결이 맞는지 (자동 판정 불가)
   - 특히 F3 reveal 카드(꽃/식물 = preview-3)의 “가까이서 챙겨주는 사람” 메타포가 충분히 전달되는지
+- BGM 볼륨(-18dB)이 인스타 자동 라우드니스 정규화 후에도 적절한지 (육안/육이 확인 필요)
 - F3 reading_body 길이가 234자인 점 — 톤 손상 없이 250자 이상으로 보강할지 결정
 - 프레임별 텍스트가 safe_zone에 안전하게 들어가 있는지 육안 확인 (자동 픽셀 검사 미수행)
 - 폴백 비주얼(Pillow 절차 생성) 품질이 발행 가능한 수준인지. nanobanana 권한 복구 후 재생성 권고
