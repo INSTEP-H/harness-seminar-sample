@@ -28,7 +28,9 @@ description: 선정된 주제로 발행할 릴스의 frame_template, card_concep
    - **selected_card_index**: F3에 reveal될 카드 번호 (1~5). 비워 두면 draft 단계에서 narrative에 가장 잘 맞는 카드를 sub-agent가 선택.
    - **selected_card_meaning**: 그 카드의 타로 카드 의미 (예: The Star). draft가 reading-style에 맞춰 풀어 씀.
    - **cta_intent**: 댓글 트리거 / DM 트리거 중 어느 쪽인지.
-   - **bgm_path**: 사용자 지정 BGM 파일 경로 (선택). 비우면 silent 영상.
+   - **bgm**: 기본은 `docs/bgm-pool.yaml`의 `enabled: true` 항목 중 **무작위 1곡 자동 선택**.
+     사용자가 곡을 명시한 경우에만 그 값을 우선한다. silent를 원하면 사용자가 명시적으로 `bgm: none`이라고 말해야 한다.
+     자동 선택 시 후보군을 사용자에게 보여주고 묻지 않는다 — 그냥 골라 진행한다.
 3. 모호한 지점을 사용자에게 다시 던진다. 예:
    - "card_concept을 '길/물가/꽃/실내/도시'로 갈까요, 아니면 다른 결로 만들어볼까요?"
    - "selected_card_index를 미리 정할지, draft에서 자연스럽게 정해지게 둘지?"
@@ -61,7 +63,13 @@ description: 선정된 주제로 발행할 릴스의 frame_template, card_concep
 - 예시 문구: "이 카드들의 해석은 댓글 남겨주시면 보내드릴게요"
 
 ## 오디오
-- bgm_path: ~/Music/calm-piano-loop.mp3
+- bgm:
+    pool_id: santo-and-johnny-and-i-love-her       # docs/bgm-pool.yaml의 id
+    title: And I Love Her
+    artist: Santo & Johnny
+    source_url: https://www.youtube.com/watch?v=EHQYAylvqIo
+    hook: { start_sec: 60, duration_sec: 14, fade_in_sec: 0.8, fade_out_sec: 1.5 }
+    volume_db: -18
 - tts: 비활성
 
 ## 참고 / 금지

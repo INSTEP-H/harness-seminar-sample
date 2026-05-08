@@ -1,0 +1,62 @@
+# BGM Pool — 인스트루멘털 트렌딩 풀
+#
+# brief 단계가 BGM을 사용하기로 결정하면, `enabled: true`인 항목 중에서 무작위 1곡을 선택한다.
+# 한국어 텍스트가 화면에 깔리므로 가사 있는 곡은 풀에 포함하지 않는다.
+#
+# 갱신 주기: 월 1회 권장. 트렌딩이 식은 항목은 `enabled: false`로 비활성화하고,
+# 새 곡은 항목을 추가한다.
+#
+# 스키마:
+#   - id:            kebab-case 식별자
+#     title:         곡 제목
+#     artist:        아티스트
+#     source_url:    유튜브 또는 음원 출처
+#     source_type:   youtube | local | other
+#     hook:
+#       start_sec:   후크 시작 시각
+#       duration_sec: 잘라낼 길이 (default 14)
+#       fade_in_sec:  default 0.8
+#       fade_out_sec: default 1.5
+#     mood_tags:     [감성, 신비, 다정, lofi, 시네마틱, 두근거림 ...]
+#     trending_at:   YYYY-MM-DD (이 시점에 트렌딩으로 확인된 날짜)
+#     enabled:       true|false (false면 무작위 풀에서 제외)
+
+pool:
+  - id: santo-and-johnny-and-i-love-her
+    title: And I Love Her
+    artist: Santo & Johnny
+    source_url: https://www.youtube.com/watch?v=EHQYAylvqIo
+    source_type: youtube
+    hook:
+      start_sec: 60
+      duration_sec: 14
+      fade_in_sec: 0.8
+      fade_out_sec: 1.5
+    mood_tags: [감성, 시네마틱, 드림, 두근거림]
+    trending_at: 2026-05-08
+    enabled: true
+
+  - id: la-la-land-mia-and-sebastians-theme
+    title: Mia & Sebastian's Theme
+    artist: Justin Hurwitz (La La Land OST)
+    source_url: https://www.youtube.com/watch?v=zFx9lo3ASrU
+    source_type: youtube
+    hook:
+      start_sec: 30
+      duration_sec: 14
+      fade_in_sec: 1.0
+      fade_out_sec: 2.0
+    mood_tags: [감성, 시네마틱, 두근거림, 피아노]
+    trending_at: 2026-05-08
+    enabled: true
+
+  # 후보군 (검증 후 enabled로 전환).
+  # 항목 추가 시 source_url과 hook 구간을 반드시 검증할 것.
+  # - id: ...
+  #   title: ...
+  #   artist: ...
+  #   source_url: ...
+  #   hook: { start_sec: ..., duration_sec: 14 }
+  #   mood_tags: [...]
+  #   trending_at: ...
+  #   enabled: false

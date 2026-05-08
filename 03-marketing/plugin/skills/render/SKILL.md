@@ -26,9 +26,12 @@ description: 합성된 4 PNG 프레임과 reels 메타를 입력받아 ffmpeg로
    - formatted/reels.md의 프레임별 duration 읽기
    - concat demuxer 입력 파일 작성
    - ffmpeg로 mp4 합성 (H.264 + yuv420p, fps=30)
-   - BGM이 지정되어 있으면 합성 (afade in/out + -18dB)
+   - brief의 `bgm` 블록(`pool_id` + `source_url` + `hook`) 기반으로 BGM 합성
+     - source_url이 youtube면 `yt-dlp`로 받아 `_render/bgm-source.*`에 캐시
+     - `hook.start_sec / duration_sec`로 후크 잘라내고 fade in/out 적용
+     - 본 영상에 mix (volume_db, default -18dB; channel-formats.audio.bgm.volume_db)
    - `output.mp4` 저장
-2. 결과(파일 경로, 총 길이, BGM 사용 여부)를 사용자에게 보고.
+2. 결과(파일 경로, 총 길이, BGM 곡 정보)를 사용자에게 보고.
 
 ## 산출물 경로
 

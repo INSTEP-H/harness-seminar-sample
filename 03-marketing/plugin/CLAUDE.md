@@ -27,6 +27,7 @@
 - `docs/content-adr.yaml` — 컨텐츠 의사결정
 - `docs/reels-templates.yaml` — 릴스 프레임 시퀀스 템플릿 (예: pick-a-card)
 - `docs/topic-history.yaml` — 발행 이력. pick-topic이 중복 회피에 사용
+- `docs/bgm-pool.yaml` — 인스트루멘털 트렌딩 BGM 풀. brief가 무작위 1곡 자동 선택
 - `docs/domain-knowledge/topic-pool.yaml` — 주제 풀 + 바이럴 시그널
 - `docs/domain-knowledge/tarot-cards.md` — 카드 의미 사전
 - `docs/domain-knowledge/reading-style.md` — 해석 톤·구조 가이드
@@ -52,3 +53,4 @@
 4. review는 규칙 기반 단순 비교만 수행한다. 톤·창의성 평가는 사람에게 위임한다.
 5. 최종 발행은 사람이 한다. review가 PASS여도 자동 발행하지 않는다.
 6. pick-topic은 `topic-history.yaml`의 직전 N일 내 발행 주제를 자동 제외하여 중복 발행을 방지한다.
+7. BGM은 항상 `docs/bgm-pool.yaml`의 인스트루멘털 풀에서 무작위 1곡 자동 선택한다. 가사 있는 곡 / 사용자 임의 외부 파일은 사용자가 명시적으로 지정한 경우에만 허용한다 (한국어 텍스트와 가사 충돌 방지).
