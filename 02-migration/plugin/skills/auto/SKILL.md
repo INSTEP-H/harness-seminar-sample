@@ -28,13 +28,15 @@ description: 마이그레이션 파이프라인 전체를 오케스트레이션�
    - base branch (기본: `main`)
 4. `.migration-artifacts/{module-id}/` 디렉토리를 생성한다.
 
-### Step 2: Specify (레거시 명세 추출)
+### Step 2: Specify (레거시 명세 + 유스케이스 추출)
 
 1. **`migration-specifier` sub-agent를 호출**하여 `specify` skill을 실행한다.
-2. sub-agent는 레거시 코드를 read-only로 분석하여 `legacy-spec.md` 초안을 작성한다.
+2. sub-agent는 레거시 코드를 read-only로 분석하여 두 산출물을 작성한다:
+   - `legacy-spec.md` — 외부 계약·도메인 규칙·데이터 모델·UI·외부 의존 narrative
+   - `use-cases.md` — UC-NNN 형식의 유스케이스 표 + 상세 (검증의 기준 문서)
 3. 초안과 함께 **모호한 지점(Q-)**을 사용자에게 제시한다.
-4. 사용자 피드백을 반영하여 `legacy-spec.md`를 확정한다.
-5. 산출물을 `.migration-artifacts/{module-id}/legacy-spec.md`에 저장한다.
+4. 사용자 피드백을 반영하여 두 문서를 확정한다.
+5. 산출물을 `.migration-artifacts/{module-id}/`에 저장한다.
 
 ### Step 3: Explore (타겟 컨텍스트 수집)
 
@@ -47,11 +49,13 @@ description: 마이그레이션 파이프라인 전체를 오케스트레이션�
 ### Step 4: Plan (구현 계획서)
 
 1. **`migration-planner` sub-agent를 호출**하여 `plan` skill을 실행한다. 이 sub-agent는 **opus 모델을 사용한다.**
-2. sub-agent는 legacy-spec + target-context + migration-policy를 입력으로 받아 `migration-plan.md` 초안을 작성한다.
-3. 초안과 함께 **결정 트레이드오프 / 위험 요소 / 선행조건**을 사용자에게 제시한다.
-4. `migration-policy.review.human_signoff_required`가 true이면 **사용자 승인 없이 다음 단계로 진행하지 않는다.**
-5. 사용자 피드백을 반영하여 `migration-plan.md`를 확정한다.
-6. 산출물을 `.migration-artifacts/{module-id}/migration-plan.md`에 저장한다.
+2. sub-agent는 legacy-spec + use-cases + target-context + migration-policy를 입력으로 받아 `migration-plan.md` 초안을 작성한다.
+3. plan에는 **mermaid 다이어그램 3종(아키텍처·시퀀스·모듈 의존성)이 필수**로 포함된다.
+4. plan은 use-cases.md의 모든 UC를 100% 매핑한다. 누락 발견 시 작성을 중단하고 사용자에게 보고한다.
+5. 초안과 함께 **결정 트레이드오프 / 위험 요소 / 선행조건**을 사용자에게 제시한다.
+6. `migration-policy.review.human_signoff_required`가 true이면 **사용자 승인 없이 다음 단계로 진행하지 않는다.**
+7. 사용자 피드백을 반영하여 `migration-plan.md`를 확정한다.
+8. 산출물을 `.migration-artifacts/{module-id}/migration-plan.md`에 저장한다.
 
 ### Step 5: Implement (구현)
 
@@ -63,10 +67,13 @@ description: 마이그레이션 파이프라인 전체를 오케스트레이션�
 ### Step 6: Verify (검증)
 
 1. **`migration-verifier` sub-agent를 호출**하여 `verify` skill을 실행한다.
-2. sub-agent는 legacy-spec의 기능 체크리스트와 (UI 모듈인 경우) 시각 회귀를 모두 수행한다.
-3. `verification-report.md`를 `.migration-artifacts/{module-id}/`에 저장한다.
-4. **사용자 확인 없이 자동으로 진행한다.** 다만 FAIL이 있는 경우 결과를 사용자에게 강조해 보고한다.
-5. FAIL 항목이 있으면 사용자에게 다음 옵션을 제시한다:
+2. sub-agent는 use-cases.md의 모든 UC를 검증 표(✅/❌/⚠️)로 변환하고, (UI 모듈인 경우) 시각 회귀도 수행한다.
+3. `verification-report.md`를 `.migration-artifacts/{module-id}/`에 저장한다. 보고서는 다음 구조를 따른다:
+   - 최상단: UC-ID·제목·상태·비고 표
+   - 특이사항 섹션: ❌·⚠️ 항목별 상세 분석
+   - 최종 보고서: 통과/보류/실패 카운트 + 권장 후속 조치
+4. **사용자 확인 없이 자동으로 진행한다.** 다만 ❌가 있는 경우 결과를 사용자에게 강조해 보고한다.
+5. ❌·⚠️ 항목이 있으면 사용자에게 다음 옵션을 제시한다:
    - implementer를 다시 호출하여 수정
    - 의도된 차이로 판정하고 plan에 기록한 뒤 종료
 

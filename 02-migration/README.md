@@ -62,10 +62,11 @@ Claude Code 기반 레거시 마이그레이션 자동화 파이프라인.
 
 작업별 산출물은 `.migration-artifacts/{module-id}/`에 저장됩니다.
 
-- `legacy-spec.md` — 레거시 기능 명세 (작업 명세서)
+- `legacy-spec.md` — 레거시 narrative 명세 (외부 계약·도메인·데이터·UI·외부 의존)
+- `use-cases.md` — 유스케이스 표 + 상세 (검증의 기준 문서)
 - `target-context.md` — 타겟 컨벤션·관련 ADR (참고 자료집)
-- `migration-plan.md` — 구현 계획서
-- `verification-report.md` — 검증 보고서
+- `migration-plan.md` — 구현 계획서 (mermaid: 아키텍처·시퀀스·모듈 의존성 필수)
+- `verification-report.md` — 유스케이스별 ✅/❌/⚠️ 표 + 특이사항 + 최종 보고서
 
 ## License
 

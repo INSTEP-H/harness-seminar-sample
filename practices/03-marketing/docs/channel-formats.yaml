@@ -1,0 +1,62 @@
+# 채널별 발행 포맷 규칙
+# format / review 단계에서 자동 검증된다.
+
+channels:
+  - id: instagram
+    display_name: Instagram (피드 캡션)
+    body:
+      max_chars: 2200
+      hook_first_line: true
+      paragraphs_max: 8
+    hashtags:
+      max_count: 30
+      placement: end_of_post
+    image:
+      required: true
+      ratio: ["4:5", "1:1"]
+      max_count: 10
+    notes:
+      - 캡션은 첫 125자만 피드에 노출되므로, 그 안에 후크와 다음 행동을 암시한다.
+      - 이 채널은 텍스트 캡션이며, 비주얼은 reels(또는 카드뉴스)에서 별도로 산출된다.
+
+  - id: reels
+    display_name: Instagram Reels
+    type: video
+    aspect_ratio: "9:16"
+    canvas: { width: 1080, height: 1920 }
+    safe_zones:
+      # UI 가림 방지용 안전 여백 (퍼센트 기준, 캔버스 비율로 계산)
+      top_pct: 8                          # 상단 핸들 영역
+      bottom_pct: 22                      # 하단 캡션·UI 가림
+      side_pct: 6
+    branding:
+      logo:
+        path: assets/brand-logo.svg       # 사용자가 본인 로고로 교체
+        position: top-center
+        size_pct: 14                      # 캔버스 너비 기준 비율
+        margin_top_pct: 4
+      background_color: "#3B1B1B"         # 다크 버건디
+      text_color: "#F4E9D8"               # 크림
+      accent_color: "#D4A24C"             # 골드
+      title_font: serif                   # 시리즈 타이틀 폰트 카테고리
+      body_font: sans-serif
+    frames:
+      # 기본 프레임 수. 실제 프레임 구성·내용은 reels-templates.yaml 참조.
+      count: 4
+      duration_sec_total_max: 18          # 릴스 권장 14~18초
+    audio:
+      bgm:
+        required: false
+        path_field: brief.bgm_path        # brief에서 사용자 지정 가능
+        volume_db: -18
+      tts:
+        required: false                   # default off
+    body:
+      # reels는 비디오 단위로 평가되지만, 캡션(인스타 본문) 규칙은 instagram 채널을 그대로 따른다.
+      caption_inherits_from: instagram
+    review_rules:
+      enforce_aspect_ratio: true
+      enforce_logo_presence: true
+      enforce_frame_count: true
+      enforce_safe_zone: true
+      cta_in_last_frame_only: true

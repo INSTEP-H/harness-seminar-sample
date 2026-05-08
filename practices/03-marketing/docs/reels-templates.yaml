@@ -1,0 +1,91 @@
+# 릴스 프레임 시퀀스 템플릿
+# pick-topic / brief / draft / image / format / render 단계가 공통으로 참조한다.
+# 새로운 템플릿을 추가할 때는 여기에 등록한 뒤 brief의 frame_template으로 지정하면 된다.
+
+templates:
+  - id: pick-a-card
+    description: |
+      4프레임 구조의 운세 컨텐츠 표준 템플릿.
+      hook(질문 + 카드 5장 뒷면) → selection(카드 5장 미리보기) → reveal(카드 1장 + 해석)
+      → CTA(다른 카드들 + 댓글/DM 트리거).
+    frames:
+      - n: 1
+        role: hook
+        duration_sec: 2.5
+        text_slots:
+          - id: question
+            position: top
+            max_chars: 26
+            font: title
+            description: 직관적 호기심을 자극하는 한 문장 질문. 첫 줄 후크.
+        image_slots:
+          - id: cards-back
+            position: middle
+            count: 5
+            arrangement: grid-3-2          # 3장 위 2장 아래
+            description: 카드 뒷면 5장. 모두 동일 디자인.
+        notes:
+          - 본문 길이를 줄이고 카드 그래픽 우위로 시선 끈다.
+
+      - n: 2
+        role: selection
+        duration_sec: 3
+        text_slots:
+          - id: question_full
+            position: top
+            max_chars: 40
+            font: title
+            description: 1프레임 질문을 좀 더 풀어 쓴 표현. "직관적으로 끌리는 한 장을 골라보세요" 같은 문장 권장.
+        image_slots:
+          - id: cards-preview
+            position: middle
+            count: 5
+            arrangement: grid-3-2
+            description: |
+              뒷면이 풍경/오브젝트 미리보기로 교체된 5장.
+              각각 시각적으로 구별되는 분위기여야 한다.
+              (예: 길/물가/꽃/방 안/도시)
+        notes:
+          - 시청자가 1장을 머릿속에서 고르는 시간 확보를 위해 가장 긴 정적 프레임은 아니지만 충분한 호흡을 둔다.
+
+      - n: 3
+        role: reveal
+        duration_sec: 6
+        text_slots:
+          - id: reading_body
+            position: bottom
+            max_chars: 320
+            font: body
+            description: |
+              선택된 카드(예: 3번)에 대한 해석 본문.
+              감성 서사형. 2~5문장. brand-voice.tone 참조.
+        image_slots:
+          - id: card-revealed
+            position: top
+            count: 1
+            arrangement: single
+            description: |
+              2프레임의 카드 미리보기 중 하나(brief.card_concept에서 결정)를 확대 노출.
+              상단의 선택 인덱스(예: "3번")를 함께 노출.
+        notes:
+          - 가장 긴 프레임. 본문이 화면 안전영역(safe_zone) 안에 들어가도록 폰트 크기를 자동 조정한다.
+
+      - n: 4
+        role: cta
+        duration_sec: 2.5
+        text_slots:
+          - id: cta_text
+            position: bottom
+            max_chars: 50
+            font: body
+            description: |
+              댓글 또는 DM 트리거.
+              "이 카드들의 해석은 댓글로 카드 번호 남겨주시면 보내드릴게요" 형식.
+        image_slots:
+          - id: cards-mixed
+            position: middle
+            count: 3                       # 4장 중 3장 노출 (구도 정돈)
+            arrangement: row
+            description: 2프레임 카드 5장 중 일부(예: 2,3,4)를 가로로 노출.
+        notes:
+          - 가입 직설 금지 (content-adr ADR-002). 댓글/DM 트리거만 허용.
