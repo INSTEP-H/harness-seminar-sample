@@ -23,8 +23,8 @@
 
 | # | 항목 | 결과 | 비고 |
 | --- | --- | --- | --- |
-| 9 | 프레임 수 | PASS | composed/frame-{1..4}.png 정확히 4개 |
-| 10 | 해상도 | PASS | 모든 프레임 1080×1920 (`magick identify` 확인) |
+| 9 | 프레임 수 | PASS | 정적 프레임 4 (frame-{1..4}.png) + F2 카운트다운 sub-frame 25 (5fps × 5s). 논리적으로 4프레임 시퀀스 유지 |
+| 10 | 해상도 | PASS | 모든 PNG 1080×1920. 카운트다운 sub-frame 포함 검증 |
 | 11 | 로고 부재 | UNVERIFIED | composer가 메타를 남기지 않음. 사람 육안 확인 필요 (실측: 4개 프레임 모두 top-center 텍스트 로고 “DAILY TAROT” 표기 확인) |
 | 12 | safe_zone 침범 | UNVERIFIED | composer가 픽셀 단위 safe_zone 검증을 자동 출력하지 않음. 사람 육안 확인 필요 |
 
@@ -32,7 +32,7 @@
 
 | # | 항목 | 결과 | 비고 |
 | --- | --- | --- | --- |
-| 13 | 총 길이 | PASS | 14.00s ≤ 18s (channel-formats.reels.frames.duration_sec_total_max) |
+| 13 | 총 길이 | PASS | 16.00s ≤ 18s (channel-formats.reels.frames.duration_sec_total_max). F2 5초 카운트다운 확장 반영 |
 | 14 | 비율 | PASS | 1080×1920 (9:16) |
 | 15 | 코덱 (video) | PASS | H.264 + yuv420p |
 | 15-a | 코덱 (audio) | PASS | AAC 192kbps · 48kHz · stereo. BGM = Santo & Johnny “And I Love Her” (instrumental), -18dB |
@@ -45,10 +45,14 @@
 - BGM 볼륨(-18dB)이 인스타 자동 라우드니스 정규화 후에도 적절한지 (육안/육이 확인 필요)
 - F3 reading_body 길이가 234자인 점 — 톤 손상 없이 250자 이상으로 보강할지 결정
 - 프레임별 텍스트가 safe_zone에 안전하게 들어가 있는지 육안 확인 (자동 픽셀 검사 미수행)
-- 폴백 비주얼(Pillow 절차 생성) 품질이 발행 가능한 수준인지. nanobanana 권한 복구 후 재생성 권고
+- 폴백 비주얼(RWS public domain + Pillow) 품질이 발행 가능한 수준인지. nanobanana 권한 복구 후 카드 뒷면/카운트다운 일부 재생성 가능
+- F2 카운트다운 시각적 가독성 (스마트폰 화면에서 골드 링과 숫자 대비 충분한지)
 
 ## 외부 도구 상태
 
-- nanobanana MCP: **사용 불가** (`403 PERMISSION_DENIED`). image 단계는 Pillow 절차 생성으로 폴백 진행됨.
+- nanobanana MCP: **사용 불가** (`403 PERMISSION_DENIED`, 2회 재시도 동일). image 단계는 다음 폴백으로 진행:
+  - 카드 5장: **Wikimedia public-domain Rider-Waite-Smith** 원본 사용 (Pamela Colman Smith, 1909, life+70년 만료). 브랜드 골드 매팅 + 빈티지 톤 적용.
+  - 카드 뒷면: Pillow 자체 생성 (아르누보 다이아몬드 액자 + sun-moon).
+  - 카운트다운 25 sub-frame: Pillow 자체 생성 (펄스 + 진행 호 애니메이션).
 - ImageMagick 7.1.2: PASS
 - ffmpeg 8.1: PASS

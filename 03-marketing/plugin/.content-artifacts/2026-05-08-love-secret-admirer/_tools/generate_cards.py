@@ -1,296 +1,295 @@
-"""nanobanana 폴백: Pillow로 카드 raw 이미지 7장을 절차 생성.
+"""실제 RWS(라이더-웨이트-스미스) 카드를 브랜드 톤으로 마감해 7장의 raw 이미지를 만든다.
 
-- card-back, card-preview-1..5, card-revealed (= preview-3 확대 변형)
-- 2:3 비율, 600x900px
-- 다크 버건디 배경 + 골드 테두리 + 카드별 모티프
+매핑:
+- preview-1 (길/도로)        ← The Fool (0)
+- preview-2 (물가)           ← The Star (XVII)
+- preview-3 (꽃/식물, 선택) ← The Lovers (VI)
+- preview-4 (실내 공간)      ← The Hermit (IX)
+- preview-5 (도시 야경)      ← The Moon (XVIII)
+- card-back                 ← 브랜드 자체 디자인 (아르누보 골드 패턴)
+- card-revealed             ← The Lovers + 글로우 강화
+
+Public domain: Pamela Colman Smith died 1951; RWS art is in the public domain
+worldwide (life+70). Source: Wikimedia Commons.
 """
 from __future__ import annotations
 
 import math
-import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
-OUT = Path(__file__).resolve().parent.parent / "images" / "raw"
-OUT.mkdir(parents=True, exist_ok=True)
+ROOT = Path(__file__).resolve().parent.parent
+RAW = ROOT / "images" / "raw"
+RWS = RAW / "_rws"
 
 W, H = 600, 900
-CORNER_R = int(W * 0.08)  # 8% radius
+CORNER_R = int(W * 0.06)
 GOLD = (212, 162, 76)
 GOLD_DIM = (164, 124, 58)
-BURGUNDY_BG = (59, 27, 27)
+GOLD_BRIGHT = (236, 196, 110)
+BURGUNDY = (59, 27, 27)
 BURGUNDY_DEEP = (38, 16, 16)
 CREAM = (244, 233, 216)
-MUSK = (139, 90, 60)
+PARCHMENT = (240, 224, 196)
 
 
-def card_canvas(bg_inner: tuple[int, int, int] | None = None) -> Image.Image:
-    """Burgundy gradient card with rounded corners and gold border."""
-    bg = bg_inner or BURGUNDY_BG
-    img = Image.new("RGB", (W, H), BURGUNDY_DEEP)
-    draw = ImageDraw.Draw(img)
-    # radial-ish vignette: lighter center, darker edges
-    cx, cy = W / 2, H / 2
+def _radial_gradient(size: tuple[int, int], inner: tuple[int, int, int],
+                     outer: tuple[int, int, int]) -> Image.Image:
+    """Radial gradient — inner color at center, outer at corners."""
+    w, h = size
+    img = Image.new("RGB", size)
+    px = img.load()
+    cx, cy = w / 2, h / 2
     max_d = math.hypot(cx, cy)
-    for y in range(H):
-        for x in range(W):
-            d = math.hypot(x - cx, y - cy) / max_d
-            t = max(0.0, 1.0 - d * 0.9)
-            r = int(BURGUNDY_DEEP[0] + (bg[0] - BURGUNDY_DEEP[0]) * t)
-            g = int(BURGUNDY_DEEP[1] + (bg[1] - BURGUNDY_DEEP[1]) * t)
-            b = int(BURGUNDY_DEEP[2] + (bg[2] - BURGUNDY_DEEP[2]) * t)
-            img.putpixel((x, y), (r, g, b))
-    # rounded mask
-    mask = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, W - 1, H - 1), CORNER_R, fill=255)
+    for y in range(h):
+        for x in range(w):
+            t = math.hypot(x - cx, y - cy) / max_d
+            t = min(1.0, t * 1.05)
+            px[x, y] = (
+                int(inner[0] + (outer[0] - inner[0]) * t),
+                int(inner[1] + (outer[1] - inner[1]) * t),
+                int(inner[2] + (outer[2] - inner[2]) * t),
+            )
+    return img
+
+
+def _rounded_mask(size: tuple[int, int], radius: int) -> Image.Image:
+    m = Image.new("L", size, 0)
+    ImageDraw.Draw(m).rounded_rectangle((0, 0, size[0] - 1, size[1] - 1),
+                                        radius, fill=255)
+    return m
+
+
+def _vintage_treatment(art: Image.Image) -> Image.Image:
+    """RWS 원화에 살짝 빈티지 톤. 너무 진하면 안 됨 — 카드 정체성 유지."""
+    art = art.convert("RGB")
+    # 살짝 채도 낮춤
+    art = ImageEnhance.Color(art).enhance(0.92)
+    # 살짝 따뜻한 sepia overlay
+    sepia = Image.new("RGB", art.size, (212, 162, 76))
+    art = Image.blend(art, sepia, 0.06)
+    # 미세 비네팅
+    vignette = _radial_gradient(art.size, (255, 255, 255), (160, 130, 100))
+    art = Image.blend(art, vignette, 0.10)
+    return art
+
+
+def _ornate_corner(img: Image.Image, x: int, y: int, size: int,
+                   rotate_deg: int = 0) -> None:
+    """아르누보 풍 코너 장식: 작은 골드 곡선 + 다이아몬드."""
+    layer = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    # 곡선 두 개 (아르누보 ‘덩굴’ 모티프)
+    d.arc((size * 0.05, size * 0.05, size * 1.6, size * 1.6), 180, 280,
+          fill=GOLD, width=3)
+    d.arc((size * 0.25, size * 0.25, size * 1.4, size * 1.4), 200, 290,
+          fill=GOLD_DIM, width=2)
+    # 끝의 작은 다이아몬드 (입자)
+    d.polygon([(size * 1.45, size * 0.55), (size * 1.55, size * 0.65),
+               (size * 1.45, size * 0.75), (size * 1.35, size * 0.65)],
+              fill=GOLD_BRIGHT)
+    layer = layer.rotate(rotate_deg, resample=Image.BICUBIC,
+                         center=(size, size))
+    img.paste(layer, (x - size, y - size), layer)
+
+
+def _frame_card(art: Image.Image,
+                bg: tuple[int, int, int] = BURGUNDY,
+                ornate: bool = True) -> Image.Image:
+    """600x900 브랜드 프레임에 art를 넣는다.
+
+    레이아웃: burgundy gradient 배경 + 골드 이중 테두리 + 코너 아르누보 + 매팅 안의 RWS art.
+    """
+    canvas = _radial_gradient((W, H), bg, BURGUNDY_DEEP)
+    canvas.paste(canvas, (0, 0), _rounded_mask((W, H), CORNER_R))
     out = Image.new("RGB", (W, H), (0, 0, 0))
-    out.paste(img, (0, 0), mask)
-    # gold border (1.5% width visually)
-    border = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(border)
-    bd.rounded_rectangle((4, 4, W - 5, H - 5), CORNER_R - 2, outline=GOLD, width=4)
-    out_rgba = out.convert("RGBA")
-    out_rgba.alpha_composite(border)
-    return out_rgba.convert("RGB")
+    out.paste(canvas, (0, 0), _rounded_mask((W, H), CORNER_R))
+    out = out.convert("RGBA")
+
+    # 매팅 영역 (art가 들어갈 공간) — 8% 인셋
+    mat_pad = int(W * 0.06)
+    mat_box = (mat_pad, mat_pad, W - mat_pad, H - mat_pad)
+    mat_w = mat_box[2] - mat_box[0]
+    mat_h = mat_box[3] - mat_box[1]
+
+    # art 비율 유지하며 매팅에 fit (letterbox, no crop)
+    aw, ah = art.size
+    scale = min(mat_w / aw, mat_h / ah)
+    new_w, new_h = int(aw * scale), int(ah * scale)
+    art_resized = art.resize((new_w, new_h), Image.LANCZOS)
+
+    # 매팅 안쪽 배경 (약간 어두운 burgundy 매트)
+    mat_layer = Image.new("RGBA", (mat_w, mat_h), (50, 22, 22, 255))
+    mat_corners = _rounded_mask((mat_w, mat_h), int(W * 0.04))
+    art_box = Image.new("RGBA", (mat_w, mat_h), (0, 0, 0, 0))
+    art_box.paste(art_resized,
+                  ((mat_w - new_w) // 2, (mat_h - new_h) // 2))
+    art_box.putalpha(mat_corners)
+    mat_layer.paste(art_box, (0, 0), art_box)
+    mat_layer.putalpha(mat_corners)
+    out.alpha_composite(mat_layer, (mat_box[0], mat_box[1]))
+
+    # 골드 이중 테두리 (외곽)
+    d = ImageDraw.Draw(out, "RGBA")
+    d.rounded_rectangle((4, 4, W - 5, H - 5), CORNER_R - 2,
+                        outline=GOLD, width=3)
+    d.rounded_rectangle((10, 10, W - 11, H - 11), CORNER_R - 4,
+                        outline=GOLD_DIM, width=1)
+    # 매팅 안쪽 골드 라인 (액자 효과)
+    d.rounded_rectangle((mat_box[0] - 2, mat_box[1] - 2,
+                         mat_box[2] + 1, mat_box[3] + 1),
+                        int(W * 0.04), outline=GOLD, width=2)
+
+    if ornate:
+        cs = 38
+        _ornate_corner(out, 28, 28, cs, rotate_deg=0)
+        _ornate_corner(out, W - 28, 28, cs, rotate_deg=90)
+        _ornate_corner(out, W - 28, H - 28, cs, rotate_deg=180)
+        _ornate_corner(out, 28, H - 28, cs, rotate_deg=270)
+
+    return out.convert("RGB")
 
 
 def card_back() -> Image.Image:
-    img = card_canvas()
-    draw = ImageDraw.Draw(img, "RGBA")
+    """브랜드 카드 뒷면 — 아르누보 골드 패턴, 중앙 sun-moon."""
+    canvas = _radial_gradient((W, H), BURGUNDY, BURGUNDY_DEEP)
+    out = Image.new("RGB", (W, H), (0, 0, 0))
+    out.paste(canvas, (0, 0), _rounded_mask((W, H), CORNER_R))
+    out = out.convert("RGBA")
+    d = ImageDraw.Draw(out, "RGBA")
+
     cx, cy = W // 2, H // 2
 
-    # outer ring
-    draw.ellipse((cx - 170, cy - 170, cx + 170, cy + 170), outline=GOLD, width=3)
-    draw.ellipse((cx - 140, cy - 140, cx + 140, cy + 140), outline=GOLD_DIM, width=1)
+    # 외곽 이중 테두리
+    d.rounded_rectangle((4, 4, W - 5, H - 5), CORNER_R - 2,
+                        outline=GOLD, width=3)
+    d.rounded_rectangle((14, 14, W - 15, H - 15), CORNER_R - 4,
+                        outline=GOLD_DIM, width=1)
 
-    # sun rays (simple radiating lines)
-    for i in range(16):
-        a = math.radians(i * (360 / 16))
-        x1 = cx + math.cos(a) * 95
-        y1 = cy + math.sin(a) * 95
-        x2 = cx + math.cos(a) * 130
-        y2 = cy + math.sin(a) * 130
-        draw.line((x1, y1, x2, y2), fill=GOLD, width=2)
+    # 안쪽 마름모 액자 (아르누보)
+    diamond_pad_y = int(H * 0.10)
+    diamond_pad_x = int(W * 0.10)
+    pts = [
+        (W // 2, diamond_pad_y),
+        (W - diamond_pad_x, H // 2),
+        (W // 2, H - diamond_pad_y),
+        (diamond_pad_x, H // 2),
+    ]
+    d.polygon(pts, outline=GOLD, width=2)
+    # 마름모 안쪽 라인 (이중)
+    inner_pts = [(W // 2, diamond_pad_y + 14),
+                 (W - diamond_pad_x - 14, H // 2),
+                 (W // 2, H - diamond_pad_y - 14),
+                 (diamond_pad_x + 14, H // 2)]
+    d.polygon(inner_pts, outline=GOLD_DIM, width=1)
 
-    # central sun disc
-    draw.ellipse((cx - 70, cy - 70, cx + 70, cy + 70), fill=BURGUNDY_DEEP, outline=GOLD, width=2)
-    # crescent moon overlay (offset cream disc + burgundy mask to suggest crescent)
+    # 중앙 외곽 원 (sun ray base)
+    d.ellipse((cx - 130, cy - 130, cx + 130, cy + 130), outline=GOLD, width=2)
+    d.ellipse((cx - 100, cy - 100, cx + 100, cy + 100),
+              outline=GOLD_DIM, width=1)
+
+    # 16방향 sun-rays (얇은 + 두꺼운 교대)
+    for i in range(32):
+        a = math.radians(i * (360 / 32))
+        r1 = 102
+        r2 = 128 if i % 2 == 0 else 122
+        x1 = cx + math.cos(a) * r1
+        y1 = cy + math.sin(a) * r1
+        x2 = cx + math.cos(a) * r2
+        y2 = cy + math.sin(a) * r2
+        w = 2 if i % 2 == 0 else 1
+        d.line((x1, y1, x2, y2), fill=GOLD, width=w)
+
+    # 중앙 sun disc
+    d.ellipse((cx - 78, cy - 78, cx + 78, cy + 78),
+              fill=BURGUNDY_DEEP, outline=GOLD, width=2)
+
+    # 그 안에 crescent moon (오프셋 마스크 트릭)
     moon = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     md = ImageDraw.Draw(moon)
-    md.ellipse((cx - 50, cy - 50, cx + 50, cy + 50), fill=(244, 233, 216, 170))
-    md.ellipse((cx - 30, cy - 60, cx + 70, cy + 40), fill=(0, 0, 0, 0))
-    img.paste(moon, (0, 0), moon)
-    # corner ornaments (small diamond at each inner corner)
-    for (x, y) in [(40, 40), (W - 40, 40), (40, H - 40), (W - 40, H - 40)]:
-        draw.polygon([(x, y - 8), (x + 8, y), (x, y + 8), (x - 8, y)], fill=GOLD)
-    # subtle outer art-deco arches at top/bottom
-    for k, base_y in enumerate([60, H - 60]):
-        draw.arc((W // 2 - 60, base_y - 12, W // 2 + 60, base_y + 12), 0, 360, fill=GOLD_DIM, width=1)
-    return img
+    md.ellipse((cx - 56, cy - 56, cx + 56, cy + 56), fill=CREAM + (210,))
+    # crescent: 원에서 burgundy 원을 빼서 초승달
+    cut = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    cd = ImageDraw.Draw(cut)
+    cd.ellipse((cx - 30, cy - 70, cx + 78, cy + 38),
+               fill=(38, 16, 16, 255))
+    moon.alpha_composite(cut)
+    out.alpha_composite(moon)
+    # 별 8각 (sun 안쪽 작은 별)
+    for r, w in [(36, 2), (24, 1)]:
+        for i in range(8):
+            a = math.radians(i * 45)
+            x1 = cx + math.cos(a) * r
+            y1 = cy + math.sin(a) * r
+            d.line((cx, cy, x1, y1), fill=GOLD, width=w)
+
+    # 상하 작은 아르누보 모티프 (덩굴)
+    for base_y in (60, H - 60):
+        d.arc((W // 2 - 90, base_y - 18, W // 2 + 90, base_y + 18),
+              0, 180, fill=GOLD_DIM, width=2)
+        d.line((W // 2 - 90, base_y, W // 2 + 90, base_y),
+               fill=GOLD_DIM, width=1)
+
+    # 코너 다이아몬드 4개
+    for (x, y) in [(50, 50), (W - 50, 50), (50, H - 50), (W - 50, H - 50)]:
+        d.polygon([(x, y - 9), (x + 9, y), (x, y + 9), (x - 9, y)],
+                  fill=GOLD)
+        d.polygon([(x, y - 5), (x + 5, y), (x, y + 5), (x - 5, y)],
+                  fill=GOLD_BRIGHT)
+
+    # 4코너 아르누보 곡선
+    cs = 40
+    _ornate_corner(out, 30, 30, cs, rotate_deg=0)
+    _ornate_corner(out, W - 30, 30, cs, rotate_deg=90)
+    _ornate_corner(out, W - 30, H - 30, cs, rotate_deg=180)
+    _ornate_corner(out, 30, H - 30, cs, rotate_deg=270)
+
+    return out.convert("RGB")
 
 
-def _scene_card(draw_fn, bg=None) -> Image.Image:
-    img = card_canvas(bg)
-    draw_fn(img)
-    return img
-
-
-def _draw_path(img: Image.Image) -> None:
-    """길/도로 — 비 온 뒤 골목길, 멀리 가로등."""
-    draw = ImageDraw.Draw(img, "RGBA")
-    # ground perspective: trapezoid
-    draw.polygon([(W * 0.45, H * 0.55), (W * 0.55, H * 0.55),
-                  (W * 0.85, H * 0.92), (W * 0.15, H * 0.92)],
-                 fill=(70, 40, 36))
-    # wet reflection band
-    for i in range(8):
-        y = int(H * (0.62 + i * 0.04))
-        x_l = int(W * (0.45 - i * 0.04))
-        x_r = int(W * (0.55 + i * 0.04))
-        draw.line((x_l, y, x_r, y), fill=(180, 130, 70, 60), width=2)
-    # distant lantern glow
+def revealed_from(art: Image.Image) -> Image.Image:
+    """F3용 reveal 카드: 브랜드 프레임 + 골드 글로우 후광."""
+    framed = _frame_card(art, ornate=True).convert("RGBA")
+    # 외곽에 살짝 골드 글로우
     glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     gd = ImageDraw.Draw(glow)
-    cx, cy = W // 2, int(H * 0.5)
-    for r in range(120, 0, -8):
-        a = max(8, int(120 - r))
-        gd.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(212, 162, 76, a))
+    for r in range(0, 24, 2):
+        a = max(0, 90 - r * 4)
+        gd.rounded_rectangle((r, r, W - 1 - r, H - 1 - r),
+                             CORNER_R - r, outline=(*GOLD, a), width=2)
     glow = glow.filter(ImageFilter.GaussianBlur(8))
-    img.paste(glow, (0, 0), glow)
-    # walls hinted by darker side rectangles
-    draw.rectangle((0, int(H * 0.25), int(W * 0.30), int(H * 0.92)), fill=(48, 22, 22))
-    draw.rectangle((int(W * 0.70), int(H * 0.25), W, int(H * 0.92)), fill=(48, 22, 22))
-
-
-def _draw_water(img: Image.Image) -> None:
-    """물가 — 호숫가 + 종이배."""
-    draw = ImageDraw.Draw(img, "RGBA")
-    # water bands (horizontal gradient stripes)
-    for i in range(16):
-        y = int(H * 0.45 + i * 18)
-        if y >= H - 20:
-            break
-        alpha = 70 + (i % 4) * 18
-        draw.line((40, y, W - 40, y), fill=(120, 160, 170, alpha), width=2)
-    # horizon line
-    draw.line((40, int(H * 0.45), W - 40, int(H * 0.45)), fill=(180, 140, 90), width=1)
-    # paper boat (triangular)
-    bx, by = W // 2, int(H * 0.65)
-    draw.polygon([(bx - 50, by + 18), (bx + 50, by + 18), (bx + 30, by + 36), (bx - 30, by + 36)],
-                 fill=CREAM)
-    draw.polygon([(bx - 30, by + 18), (bx, by - 30), (bx + 30, by + 18)], fill=CREAM)
-    draw.line((bx, by - 30, bx, by + 18), fill=GOLD, width=1)
-    # ripple
-    for r in range(20, 90, 14):
-        draw.ellipse((bx - r, by + 30 - r // 5, bx + r, by + 30 + r // 5),
-                     outline=(212, 162, 76, 80), width=1)
-
-
-def _draw_plant(img: Image.Image) -> None:
-    """꽃/식물 — 책상 위 화분, 비스듬한 햇빛."""
-    draw = ImageDraw.Draw(img, "RGBA")
-    # desk surface
-    draw.rectangle((0, int(H * 0.72), W, H), fill=(78, 50, 40))
-    draw.line((0, int(H * 0.72), W, int(H * 0.72)), fill=GOLD_DIM, width=2)
-    # slanted sunlight beam (parallelogram, soft)
-    beam = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(beam)
-    bd.polygon([(int(W * 0.05), 0), (int(W * 0.55), 0),
-                (int(W * 0.85), int(H * 0.95)), (int(W * 0.35), int(H * 0.95))],
-               fill=(244, 233, 216, 30))
-    beam = beam.filter(ImageFilter.GaussianBlur(18))
-    img.paste(beam, (0, 0), beam)
-    # pot
-    pot_x = W // 2
-    pot_top = int(H * 0.55)
-    pot_bot = int(H * 0.78)
-    draw.polygon([(pot_x - 80, pot_top), (pot_x + 80, pot_top),
-                  (pot_x + 60, pot_bot), (pot_x - 60, pot_bot)],
-                 fill=MUSK, outline=GOLD, width=2)
-    # plant leaves (soft ellipses)
-    leaf_color = (130, 150, 100)
-    for dx, dy, w, h, ang in [
-        (-40, -40, 80, 130, -25),
-        (10, -90, 70, 140, 10),
-        (50, -30, 70, 110, 30),
-        (-10, -110, 50, 100, -5),
-    ]:
-        leaf = Image.new("RGBA", (200, 200), (0, 0, 0, 0))
-        ld = ImageDraw.Draw(leaf)
-        ld.ellipse((100 - w // 2, 100 - h // 2, 100 + w // 2, 100 + h // 2),
-                   fill=leaf_color + (220,))
-        leaf = leaf.rotate(ang, resample=Image.BICUBIC)
-        img.paste(leaf, (pot_x + dx - 100, pot_top + dy - 100), leaf)
-    # tiny golden bloom highlights
-    for (dx, dy) in [(-20, -120), (30, -80), (60, -10)]:
-        cx_, cy_ = pot_x + dx, pot_top + dy
-        draw.ellipse((cx_ - 6, cy_ - 6, cx_ + 6, cy_ + 6), fill=GOLD)
-
-
-def _draw_room(img: Image.Image) -> None:
-    """실내 공간 — 커튼 사이 빛, 빈 의자."""
-    draw = ImageDraw.Draw(img, "RGBA")
-    # back wall slightly lighter
-    draw.rectangle((0, 0, W, int(H * 0.78)), fill=(70, 36, 32))
-    # floor
-    draw.rectangle((0, int(H * 0.78), W, H), fill=(50, 26, 22))
-    draw.line((0, int(H * 0.78), W, int(H * 0.78)), fill=GOLD_DIM, width=1)
-    # curtain — vertical light stripes in cream alpha
-    curtain = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    cd = ImageDraw.Draw(curtain)
-    for i in range(6):
-        x = int(W * 0.55) + i * 20
-        cd.rectangle((x, 30, x + 12, int(H * 0.78)),
-                     fill=(244, 233, 216, 35 + (i % 3) * 12))
-    curtain = curtain.filter(ImageFilter.GaussianBlur(2))
-    img.paste(curtain, (0, 0), curtain)
-    # light beam through curtain (diagonal)
-    beam = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(beam)
-    bd.polygon([(int(W * 0.55), 30), (int(W * 0.85), 30),
-                (int(W * 0.55), int(H * 0.92)), (int(W * 0.30), int(H * 0.92))],
-               fill=(244, 233, 216, 22))
-    beam = beam.filter(ImageFilter.GaussianBlur(20))
-    img.paste(beam, (0, 0), beam)
-    # chair silhouette (left)
-    cx_ = int(W * 0.30)
-    cy_ = int(H * 0.62)
-    draw.rectangle((cx_ - 50, cy_, cx_ + 50, cy_ + 70), fill=(40, 18, 16))
-    draw.rectangle((cx_ - 50, cy_ - 80, cx_ - 35, cy_), fill=(40, 18, 16))
-    draw.rectangle((cx_ + 35, cy_ - 80, cx_ + 50, cy_), fill=(40, 18, 16))
-    # chair leg
-    draw.line((cx_ - 40, cy_ + 70, cx_ - 40, int(H * 0.92)), fill=(40, 18, 16), width=4)
-    draw.line((cx_ + 40, cy_ + 70, cx_ + 40, int(H * 0.92)), fill=(40, 18, 16), width=4)
-
-
-def _draw_city(img: Image.Image) -> None:
-    """도시 야경 — 창가, 도시 불빛."""
-    draw = ImageDraw.Draw(img, "RGBA")
-    # window frame
-    draw.rectangle((40, 40, W - 40, H - 40), outline=GOLD_DIM, width=3)
-    # cross mullions
-    draw.line((W // 2, 40, W // 2, H - 40), fill=GOLD_DIM, width=2)
-    draw.line((40, H // 2, W - 40, H // 2), fill=GOLD_DIM, width=2)
-    # buildings silhouette
-    rng = random.Random(7)
-    base_y = int(H * 0.62)
-    x = 60
-    while x < W - 60:
-        bw = rng.randint(28, 56)
-        bh = rng.randint(80, 220)
-        draw.rectangle((x, base_y - bh, x + bw, base_y), fill=(28, 12, 12))
-        # window lights
-        for wy in range(base_y - bh + 14, base_y - 10, 18):
-            for wx in range(x + 6, x + bw - 6, 14):
-                if rng.random() < 0.45:
-                    draw.rectangle((wx, wy, wx + 5, wy + 6),
-                                   fill=(240, 200, 110))
-        x += bw + 6
-    # ground city glow
-    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    gd = ImageDraw.Draw(glow)
-    gd.rectangle((40, base_y - 4, W - 40, base_y + 4), fill=(212, 162, 76, 90))
-    glow = glow.filter(ImageFilter.GaussianBlur(10))
-    img.paste(glow, (0, 0), glow)
-    # condensation streaks (faint)
-    for sx in [W * 0.30, W * 0.55, W * 0.78]:
-        draw.line((sx, 60, sx + 4, H - 60), fill=(244, 233, 216, 40), width=2)
-
-
-def card_revealed_from(preview: Image.Image) -> Image.Image:
-    """preview-3을 reveal용으로 약간 확대·디테일 강화."""
-    base = preview.copy()
-    # sharpen-ish: slight contrast boost via overlay
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    # extra warm rim glow
-    for r in range(W // 2, W // 2 - 200, -10):
-        a = max(0, int(80 - (W // 2 - r) * 0.6))
-        od.ellipse((W // 2 - r, H // 2 - r, W // 2 + r, H // 2 + r),
-                   outline=(212, 162, 76, a // 2), width=2)
-    overlay = overlay.filter(ImageFilter.GaussianBlur(6))
-    base = base.convert("RGBA")
-    base.alpha_composite(overlay)
-    return base.convert("RGB")
+    framed.alpha_composite(glow)
+    return framed.convert("RGB")
 
 
 def main() -> None:
-    files: list[tuple[str, Image.Image]] = []
+    mapping = [
+        ("card-preview-1.png", "00_Fool.jpg"),
+        ("card-preview-2.png", "17_Star.jpg"),
+        ("card-preview-3.png", "06_Lovers.jpg"),
+        ("card-preview-4.png", "09_Hermit.jpg"),
+        ("card-preview-5.png", "18_Moon.jpg"),
+    ]
+    arts: dict[str, Image.Image] = {}
+    for out_name, src in mapping:
+        src_path = RWS / src
+        art = Image.open(src_path).convert("RGB")
+        art = _vintage_treatment(art)
+        framed = _frame_card(art, ornate=True)
+        framed.save(RAW / out_name, "PNG", optimize=True)
+        arts[out_name] = framed
+        print(f"wrote {RAW / out_name} ({(RAW / out_name).stat().st_size // 1024} KB)")
 
-    files.append(("card-back.png", card_back()))
-    files.append(("card-preview-1.png", _scene_card(_draw_path)))
-    files.append(("card-preview-2.png", _scene_card(_draw_water)))
-    p3 = _scene_card(_draw_plant)
-    files.append(("card-preview-3.png", p3))
-    files.append(("card-preview-4.png", _scene_card(_draw_room)))
-    files.append(("card-preview-5.png", _scene_card(_draw_city)))
-    files.append(("card-revealed.png", card_revealed_from(p3)))
+    back = card_back()
+    back.save(RAW / "card-back.png", "PNG", optimize=True)
+    print(f"wrote {RAW / 'card-back.png'}")
 
-    for name, img in files:
-        path = OUT / name
-        img.save(path, "PNG", optimize=True)
-        print(f"wrote {path} ({path.stat().st_size // 1024} KB)")
+    # revealed = preview-3 (The Lovers) 그대로 + glow
+    lovers_art = _vintage_treatment(Image.open(RWS / "06_Lovers.jpg").convert("RGB"))
+    revealed = revealed_from(lovers_art)
+    revealed.save(RAW / "card-revealed.png", "PNG", optimize=True)
+    print(f"wrote {RAW / 'card-revealed.png'}")
 
 
 if __name__ == "__main__":

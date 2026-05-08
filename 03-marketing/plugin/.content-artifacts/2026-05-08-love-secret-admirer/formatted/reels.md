@@ -11,16 +11,18 @@
 | frame | role | duration_sec | image | 텍스트 슬롯 |
 | --- | --- | --- | --- | --- |
 | 1 | hook | 2.5 | images/composed/frame-1.png | 요즘 티 안내고 / 나를 좋아하는 사람 |
-| 2 | selection | 3.0 | images/composed/frame-2.png | 직관적으로 끌리는 / 한 장을 골라보세요 |
-| 3 | reveal | 6.0 | images/composed/frame-3.png | 3번 카드 + 본문 (294자) |
+| 2 | selection (countdown) | 5.0 | images/composed/_count/f2-c{5..1}-{00..04}.png × 25 (5fps 펄스) | 직관적으로 끌리는 / 한 장을 골라보세요 + 다이나믹 5초 카운트다운 |
+| 3 | reveal | 6.0 | images/composed/frame-3.png | 3번 카드 (The Lovers) + 본문 (234자) |
 | 4 | cta | 2.5 | images/composed/frame-4.png | 댓글로 카드 번호를 남겨주세요 |
 
-- **total_duration_sec**: 14.0
+- **total_duration_sec**: 16.0
 - **권장 범위**: 14–18초 (channel-formats.reels.frames.duration_sec_total_max)
+- **카운트다운 구현**: F2 베이스 정적 PNG 위에 1초당 5장의 sub-frame을 합성 (총 25장).
+  각 숫자(5→1)는 0.0~1.0 t 정규화 펄스 — 등장 ease-out, 안정, 박동(sin), 페이드. 골드 외곽 링 + 진행 호(360°→0°).
 
 ## 오디오
 
-- bgm: **Santo & Johnny — “And I Love Her”** (instrumental, 1964). t=60s부터 14s 후크, fade in 0.8s / fade out 1.5s, -18dB
+- bgm: **Santo & Johnny — “And I Love Her”** (instrumental, 1964). t=60s부터 16s 후크, fade in 0.8s / fade out 1.5s, -18dB
 - bgm 선정: `docs/bgm-pool.yaml`의 인스트루멘털 트렌딩 풀에서 선택
 - tts: 미사용
 
