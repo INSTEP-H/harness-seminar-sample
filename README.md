@@ -1,3 +1,20 @@
+## 컨벤져스에서 쓰는 법 (convengers 브랜치 안내)
+
+하네스 세미나용 예제 묶음입니다. 코드리뷰, 레거시 이전(마이그레이션), 타로 릴스 마케팅 세 가지 파이프라인이 각각 플러그인으로 들어 있습니다.
+
+1. `convengers/skills/` 아래 폴더들을 키트의 `plugins/convengers/skills/` 로 복사합니다. 이름 앞에 `seminar-codereview-`, `seminar-migration-`, `seminar-marketing-` 가 붙어 있어 기존 스킬과 겹치지 않습니다. 코드리뷰 쪽은 mafia-codereview-harness 저장소의 새 판(GitHub PR에 직접 코멘트까지 다는 판)이라 둘 중 하나만 키트에 넣습니다.
+2. `convengers/agents/` 의 에이전트 파일은 키트의 `plugins/convengers/agents/` 로 복사합니다.
+3. 각 파이프라인이 읽는 `docs/*.yaml` 은 원본 `0X-이름/plugin/docs/` 에 있으니 쓰는 프로젝트로 가져가 고칩니다.
+4. 마케팅 파이프라인은 nanobanana MCP, ImageMagick, ffmpeg 가 있어야 돕니다.
+
+주의: 옮긴 스킬 본문 안에서 서로를 부를 때는 원래 짧은 이름(`/update-docs`, `/brief` 같은)을 그대로 씁니다. 키트에서 이름 앞에 붙인 접두어와 안 맞으니, 키트에 넣을 때 본문의 호출 이름을 새 이름으로 맞춰야 바로 돕니다.
+
+키트와 붙이는 자세한 자리는 [`convengers/연결.md`](convengers/연결.md) 에 적었습니다.
+
+원저작: VIBE MAFIA CLUB (https://github.com/vibemafiaclub/harness-seminar-sample). 라이선스는 원본 README의 License 절(MIT) 그대로입니다. 아래 원문과 저작권 표기는 손대지 않았습니다.
+
+---
+
 # Harness Seminar Sample
 
 Claude Code 기반 하네스(harness) 세미나 샘플 모음입니다.
